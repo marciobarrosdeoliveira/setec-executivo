@@ -30,38 +30,6 @@
       `<section class="painel"><div class="crono-wrap"><table class="crono"><thead>${cab}</thead><tbody>${corpo}</tbody></table></div></section>`;
   };
 
-  // ---------- Unidades ----------
-  S.rotas.unidades = function (p) {
-    const cs = S.comps();
-    const sel = p.get('u') || S.estado.unidade || U[0];
-    const max = Math.max(1, ...U.flatMap((u) => MESES.map((m) => cs.filter((c) => c.data === m && c.papeis[u] === 'R').length)));
-    const heat = `<div class="tabela-wrap"><table class="t heat"><thead><tr><th>Unidade (como R)</th>${MESES.map((m) => `<th class="${m === MES_ATUAL ? 'atual' : ''}">${mesCurto(m)}</th>`).join('')}<th>Total R</th><th>Participa</th></tr></thead><tbody>${U.map((u) => {
-      const tds = MESES.map((m) => {
-        const r = cs.filter((c) => c.data === m && c.papeis[u] === 'R').length;
-        const a = r / max;
-        return `<td class="h" style="background:rgba(31,78,140,${(a * 0.85).toFixed(2)});color:${a > 0.5 ? '#fff' : 'inherit'}" title="${u} · ${mesRot(m)}: ${r} como responsável">${r || '<span class="zero">·</span>'}</td>`;
-      }).join('');
-      const totR = cs.filter((c) => c.papeis[u] === 'R').length;
-      const part = cs.filter((c) => c.papeis[u] && c.papeis[u] !== 'R').length;
-      return `<tr class="clicavel" data-href="#/unidades?u=${u}"><td><b>${u}</b></td>${tds}<td class="num"><b>${totR}</b></td><td class="num">${part}</td></tr>`;
-    }).join('')}</tbody></table></div><p class="nota" style="padding:0 16px 12px">Intensidade = número de compromissos sob responsabilidade (R) da unidade no mês. Picos indicam risco de capacidade.</p>`;
-
-    const abas = `<div class="filtros">${U.map((u) => `<a class="btn" style="display:inline-flex;align-items:center;${u === sel ? 'background:var(--primaria);color:#fff;border-color:var(--primaria)' : ''}" href="#/unidades?u=${u}">${u}</a>`).join('')}</div>`;
-    const ehR = cs.filter((c) => c.papeis[sel] === 'R').sort((a, b) => (a.data || '9') < (b.data || '9') ? -1 : 1);
-    const outros = cs.filter((c) => c.papeis[sel] && c.papeis[sel] !== 'R');
-    const porPapel = ['CR', 'P', 'C', 'I'].map((pp) => [pp, outros.filter((c) => c.papeis[sel] === pp).length]).filter((x) => x[1]);
-    const crit = ehR.filter((c) => c.critico).length;
-    const inisR = S.inis().filter((i) => i.resp.includes(sel));
-    const resumo = `<div class="kpis-sec" style="padding-top:0"><span><b>${inisR.length}</b> iniciativas como responsável</span><span><b>${ehR.length}</b> compromissos como R</span><span><b>${crit}</b> requerem decisão</span>${porPapel.map(([pp, n]) => `<span>${papel(pp)} <b>${n}</b> ${PAPEL_NOME[pp].toLowerCase()}</span>`).join('')}</div>`;
-    const tOutros = outros.length ? `<div class="tabela-wrap"><table class="t"><thead><tr><th>Código</th><th>Compromisso</th><th>Papel</th><th>Resp.</th><th>Prazo</th><th>Saúde</th></tr></thead><tbody>${outros.map((c) => `<tr class="clicavel" data-item="${esc(c.id)}"><td class="cod">${esc(c.id)}</td><td>${esc(c.nome)}</td><td>${papel(c.papeis[sel])}</td><td>${respHtml(c.resp)}</td><td class="nowrap">${esc(mesRot(c.data))}</td><td>${tagSaude(c.saude)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="vazio-msg">Sem participações.</div>';
-
-    return cabPagina('Capacidade por unidade', 'Distribuição mensal dos compromissos sob responsabilidade de cada unidade e detalhamento da carga.') +
-      `<div style="margin-bottom:16px">${painel('Mapa de calor — compromissos como responsável', '', heat, { semPad: true })}</div>` +
-      abas + resumo +
-      `<div style="margin-bottom:16px">${painel(`${esc(sel)} · compromissos como responsável`, `${ehR.length}`, tabComp(ehR, 'Nenhum compromisso como responsável.'), { semPad: true })}</div>` +
-      painel(`${esc(sel)} · demais participações`, `${outros.length}`, tOutros, { semPad: true });
-  };
-
   // ---------- Contratações ----------
   S.rotas.contratacoes = function () {
     const cs = S.comps();

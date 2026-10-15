@@ -1,31 +1,10 @@
 /* Portfólio de iniciativas, compromissos e busca. */
 (function (S) {
   'use strict';
-  const { U, MESES, esc, mesRot, tagSit, tagSaude, papeisHtml, respHtml, flags, frenteHtml, painel, cabPagina, tagAnalise, SIT, SAU } = S;
+  const { U, esc, mesRot, tagSit, tagSaude, papeisHtml, respHtml, flags, frenteHtml, painel, cabPagina, tagAnalise, SIT, SAU, opcoes, ligarFiltros, periodoHtml, passaPeriodo, casaPapel, thUnidades, tdUnidades } = S;
 
   const norm = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const casa = (q, ...campos) => !q || campos.some((c) => norm(c).includes(q));
-  const opcoes = (lista, sel, todos) => `<option value="">${todos}</option>` + lista.map((o) => {
-    const [v, r] = Array.isArray(o) ? o : [o, o];
-    return `<option value="${esc(v)}" ${v === sel ? 'selected' : ''}>${esc(r)}</option>`;
-  }).join('');
-
-  // Renderiza filtros uma vez e só atualiza os resultados (mantém foco na busca).
-  function ligarFiltros(estado, desenhar) {
-    const box = document.getElementById('filtros');
-    const atualizar = () => {
-      box.querySelectorAll('[data-f]').forEach((el) => { estado[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; });
-      desenhar();
-    };
-    box.addEventListener('input', atualizar);
-    box.addEventListener('change', atualizar);
-    const limpar = box.querySelector('[data-limpar]');
-    if (limpar) limpar.addEventListener('click', () => {
-      box.querySelectorAll('[data-f]').forEach((el) => { if (el.type === 'checkbox') el.checked = false; else el.value = ''; });
-      atualizar();
-    });
-    desenhar();
-  }
 
   // ---------- Portfólio ----------
   const fPort = {};
@@ -75,17 +54,23 @@
   // ---------- Compromissos ----------
   const fComp = {};
   const DESTAQUES = [['critico', 'Requerem decisão'], ['atencao', 'Em atenção'], ['vencido', 'Prazo vencido'], ['contratacao', 'Dependem de contratação'], ['capacitacao', 'Dependem de capacitação'], ['semdata', 'Sem data']];
+  const PAPEL_FILTRO = [['todos', 'Qualquer'], ['R', 'R · Responsável'], ['RCR', 'R + CR'], ['CR', 'CR · Corresponsável'], ['P', 'P · Participante'], ['C', 'C · Consultado'], ['I', 'I · Informado']];
   S.rotas.compromissos = function (p) {
-    Object.assign(fComp, { q: '', frente: p.get('frente') || '', sit: p.get('sit') || '', saude: p.get('saude') || '', mes: p.get('mes') || '', resp: p.get('resp') || '', f: p.get('f') || '' });
+    const mes = p.get('mes') || '';
+    Object.assign(fComp, {
+      q: '', frente: p.get('frente') || '', sit: p.get('sit') || '', saude: p.get('saude') || '', f: p.get('f') || '', periodo: '',
+      de: p.get('de') || mes, ate: p.get('ate') || mes, unid: p.get('u') || p.get('resp') || '', papel: p.get('papel') || (p.get('resp') ? 'R' : 'todos'),
+    });
     const sits = SIT.map((s) => [s.v || '_', s.rot || s.v]);
     const saus = SAU.map((s) => [s.v || '_', s.rot || s.v]);
-    return cabPagina('Compromissos', 'Camada tática: entregas concretas das iniciativas, com responsável, prazo, situação e saúde. Clique em uma linha para ver o detalhe.') +
+    return cabPagina('Compromissos', 'Camada tática: entregas concretas das iniciativas, com data prevista e papel de cada unidade (COINF, CODES, COIND, DISIN, COGES). Clique em uma linha para ver o detalhe.') +
       `<div class="filtros" id="filtros">
         <input type="search" data-f="q" placeholder="Filtrar por código ou texto…">
         <label>Destaque <select data-f="f">${opcoes(DESTAQUES, fComp.f, 'Todos')}</select></label>
+        ${periodoHtml(fComp)}
+        <label>Unidade <select data-f="unid">${opcoes(U, fComp.unid, 'Todas')}</select></label>
+        <label>Papel <select data-f="papel">${opcoes(PAPEL_FILTRO, fComp.papel)}</select></label>
         <label>Frente <select data-f="frente">${opcoes(S.frentes, fComp.frente, 'Todas')}</select></label>
-        <label>Responsável <select data-f="resp">${opcoes([...U, 'CGTEC'], fComp.resp, 'Todos')}</select></label>
-        <label>Mês <select data-f="mes">${opcoes(MESES.map((m) => [m, mesRot(m)]), fComp.mes, 'Todos')}</select></label>
         <label>Situação <select data-f="sit">${opcoes(sits, fComp.sit, 'Todas')}</select></label>
         <label>Saúde <select data-f="saude">${opcoes(saus, fComp.saude, 'Todas')}</select></label>
         <button class="link-limpar" data-limpar>Limpar</button>
@@ -94,25 +79,28 @@
   };
   const passaDestaque = (c, f) => !f || (f === 'semdata' ? !c.data : !!c[f]);
   const igualOuVazio = (filtro, v) => !filtro || (filtro === '_' ? !v : v === filtro);
+  const passaPapel = (c) => (fComp.unid ? casaPapel(c.papeis[fComp.unid], fComp.papel) : fComp.papel === 'todos' || U.some((u) => casaPapel(c.papeis[u], fComp.papel)));
   S.rotas.compromissos.depois = () => ligarFiltros(fComp, () => {
     const q = norm(fComp.q);
     const lista = S.comps().filter((c) => casa(q, c.id, c.nome, c.ini && c.ini.nome, c.relato, c.observacoes, c.pontoValidar, c.objetoContratacao) &&
-      passaDestaque(c, fComp.f) && (!fComp.frente || c.frente === fComp.frente) && (!fComp.resp || c.resp.includes(fComp.resp)) &&
-      (!fComp.mes || c.data === fComp.mes) && igualOuVazio(fComp.sit, c.situacao) && igualOuVazio(fComp.saude, c.saude));
-    document.getElementById('total').textContent = `${lista.length} compromisso(s)`;
+      passaDestaque(c, fComp.f) && (!fComp.frente || c.frente === fComp.frente) && passaPapel(c) &&
+      passaPeriodo(c, fComp.de, fComp.ate) && igualOuVazio(fComp.sit, c.situacao) && igualOuVazio(fComp.saude, c.saude));
+    const nIni = new Set(lista.map((c) => c.iniciativa)).size;
+    document.getElementById('total').textContent = `${lista.length} compromisso(s) · ${nIni} iniciativa(s)`;
+    const NC = 7 + U.length;
     let html = '';
     let atual = null;
     lista.forEach((c) => {
       if (c.iniciativa !== atual) {
         atual = c.iniciativa;
-        html += `<tr class="grupo clicavel" data-item="${esc(c.iniciativa)}"><td colspan="7"><span class="mono">${esc(c.iniciativa)}</span> · ${esc(c.ini ? c.ini.nome : '')} <span class="muda" style="font-weight:400">· ${esc(c.frente)}</span></td></tr>`;
+        html += `<tr class="grupo clicavel" data-item="${esc(c.iniciativa)}"><td colspan="${NC}"><span class="mono">${esc(c.iniciativa)}</span> · ${esc(c.ini ? c.ini.nome : '')} <span class="muda" style="font-weight:400">· ${esc(c.frente)}</span></td></tr>`;
       }
       html += `<tr class="clicavel" data-item="${esc(c.id)}"><td class="cod">${esc(c.id)}</td>
         <td><b>${esc(c.nome)}</b>${c.motivos.length ? `<div style="margin-top:3px">${c.motivos.map((m) => `<span class="tag alerta">${esc(m)}</span>`).join(' ')}</div>` : ''}</td>
-        <td>${respHtml(c.resp)}<div style="margin-top:3px">${papeisHtml(c.papeis, { semR: true })}</div></td>
-        <td class="nowrap">${esc(mesRot(c.data))}</td><td>${tagSit(c.situacao)}</td><td>${tagSaude(c.saude)}</td><td>${flags(c)}</td></tr>`;
+        <td class="nowrap">${esc(mesRot(c.data))}</td>${tdUnidades(c.papeis, fComp.unid)}
+        <td>${tagSit(c.situacao)}</td><td>${tagSaude(c.saude)}</td><td>${flags(c)}</td></tr>`;
     });
-    document.getElementById('res').innerHTML = lista.length ? `<div class="tabela-wrap"><table class="t"><thead><tr><th>Código</th><th>Compromisso</th><th>Responsável · participação</th><th>Prazo</th><th>Situação</th><th>Saúde</th><th>Depende de</th></tr></thead><tbody>${html}</tbody></table></div>` : '<div class="vazio-msg">Nenhum compromisso com esses filtros.</div>';
+    document.getElementById('res').innerHTML = lista.length ? `<div class="tabela-wrap"><table class="t"><thead><tr><th>ID Compromisso</th><th>Compromisso</th><th>Data prevista</th>${thUnidades(fComp.unid)}<th>Situação</th><th>Saúde</th><th>Depende de</th></tr></thead><tbody>${html}</tbody></table></div>` : '<div class="vazio-msg">Nenhum compromisso com esses filtros.</div>';
   });
 
   // ---------- Busca ----------

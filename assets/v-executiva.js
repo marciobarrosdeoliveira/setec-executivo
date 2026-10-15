@@ -39,6 +39,12 @@
     return `<div class="meses">${barras}</div>${legenda(partesSit(lista.filter((c) => c.data)), lista.length)}${nota}`;
   }
 
+  let modoCad = 'sit';
+  function cadenciaBox(cs) {
+    const tog = `<div class="seg-toggle" style="margin-bottom:2px"><button data-cad="sit" class="${modoCad === 'sit' ? 'ativo' : ''}">Por situação</button><button data-cad="uni" class="${modoCad === 'uni' ? 'ativo' : ''}">Por unidade responsável</button></div>`;
+    return tog + (modoCad === 'sit' ? cadencia(cs) : S.cadenciaUnidades(cs, MESES, 'resp', { link: (m) => `#/unidades?mes=${m}` }) + '<p class="nota">Compromissos por mês empilhados pela unidade responsável (R). Clique em um mês para abrir a capacidade detalhada.</p>');
+  }
+
   function proximos(lista) {
     const cols = [0, 1, 2].map((n) => addMes(MES_ATUAL, n));
     return '<div class="prox">' + cols.map((m, i) => {
@@ -49,17 +55,6 @@
         <div class="muda" style="font-size:12px">Resp.: ${respHtml(c.resp)} · ${esc(c.situacao || 'Situação não informada')}</div></div>`).join('') : '<div class="vazio-msg">Nenhum compromisso no mês.</div>';
       return `<div class="prox-col ${i === 0 ? 'atual' : ''}"><h3><span>${mesRot(m)}${i === 0 ? ' · mês corrente' : ''}</span><span class="n">${cs.length}</span></h3>${itens}</div>`;
     }).join('') + '</div>';
-  }
-
-  function cargaUnidades(lista) {
-    const PAP = ['R', 'CR', 'P', 'C', 'I'];
-    const linhas = U.map((u) => {
-      const k = contar(lista.filter((c) => c.papeis[u]), (c) => c.papeis[u]);
-      const tot = PAP.reduce((a, p) => a + (k[p] || 0), 0);
-      const crit = lista.filter((c) => c.papeis[u] === 'R' && c.critico).length;
-      return `<tr class="clicavel" data-href="#/unidades?u=${u}"><td><b>${u}</b></td>${PAP.map((p) => `<td class="num ${k[p] ? '' : 'zero'}">${k[p] || '–'}</td>`).join('')}<td class="num"><b>${tot}</b></td><td class="num ${crit ? '' : 'zero'}">${crit ? `<span class="tag alerta">${crit}</span>` : '–'}</td></tr>`;
-    }).join('');
-    return `<div class="tabela-wrap"><table class="t"><thead><tr><th>Unidade</th>${PAP.map((p) => `<th class="num" title="${S.PAPEL_NOME[p]}">${S.papel(p)}</th>`).join('')}<th class="num">Total</th><th class="num">Críticos (R)</th></tr></thead><tbody>${linhas}</tbody></table></div>`;
   }
 
   function porFrente(inis, lista) {
@@ -125,10 +120,21 @@
     return cabPagina('Visão Executiva', 'Leitura por exceção do portfólio de governança de tecnologia da SETEC: o que exige decisão, o que vence nos próximos meses e onde está a carga.') +
       kpis +
       painel('Agenda de atenção', `<a href="#/pauta">Abrir pauta de deliberação →</a>`, agenda, { semPad: true }) +
-      `<div class="grade g-12" style="margin-top:16px">${painel('Distribuição dos compromissos', '', distrib)}${painel('Cadência de entregas por mês', 'empilhado por situação', cadencia(cs))}</div>` +
+      `<div class="grade g-12" style="margin-top:16px">${painel('Distribuição dos compromissos', '', distrib)}${painel('Cadência de entregas por mês', '', `<div id="cad-box">${cadenciaBox(cs)}</div>`)}</div>` +
       `<div style="margin-bottom:16px">${painel('Próximas entregas', 'mês corrente e dois seguintes', proximos(cs), { semPad: true })}</div>` +
-      `<div class="grade g-2">${painel('Carga por unidade', 'papéis nos compromissos', cargaUnidades(cs), { semPad: true })}${painel('Por frente', '', porFrente(is, cs), { semPad: true })}</div>` +
+      `<div style="margin-bottom:16px">${painel('Capacidade por unidade × mês', 'compromissos como responsável (R) · <a href="#/unidades">detalhar com filtros de período e papel →</a>', S.heatmap(cs, { meses: MESES, modo: 'R', link: true }), { semPad: true })}</div>` +
+      `<div class="grade g-2">${painel('Carga por unidade e papel', 'participações nos compromissos', S.barrasPapel(cs, { link: true }))}${painel('Por frente', '', porFrente(is, cs), { semPad: true })}</div>` +
       painel('Entregas ao negócio em destaque', `<a href="#/entregas">Ver todas →</a>`, tabEnt, { semPad: true });
+  };
+
+  S.rotas[''].depois = () => {
+    const box = document.getElementById('cad-box');
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cad]');
+      if (!b) return;
+      modoCad = b.dataset.cad;
+      box.innerHTML = cadenciaBox(S.comps());
+    });
   };
 
   S.rotas.pauta = function () {

@@ -9,11 +9,11 @@ Iniciativas Estruturantes, Compromissos, Entregas ao Negócio, Ações Relevante
 
 | Visão | Conteúdo |
 |---|---|
-| Visão Executiva | KPIs, Agenda de Atenção (requer decisão × para ciência), distribuição por situação/saúde, cadência mensal, próximas entregas, carga por unidade e por frente |
+| Visão Executiva | KPIs, Agenda de Atenção (requer decisão × para ciência), distribuição por situação/saúde, cadência mensal (por situação ou por unidade responsável), próximas entregas, mapa unidade × mês, carga por unidade e papel, carga por frente |
 | Pauta e deliberação | Roteiro da reunião: críticos, iniciativas com ajustes propostos, ressalvas das unidades, decisões de Entregas ao Negócio |
-| Iniciativas / Compromissos | Listas filtráveis (frente, responsável, mês, situação, saúde, destaque) |
+| Iniciativas / Compromissos | Listas filtráveis (frente, responsável, período De/Até, unidade e papel R/CR/todos, situação, saúde, destaque); compromissos no formato da planilha, com uma coluna por unidade (COINF, CODES, COIND, DISIN, COGES) |
 | Cronograma | Matriz iniciativa × mês com marcos coloridos pela saúde |
-| Capacidade por unidade | Mapa de calor de compromissos como responsável e detalhamento por unidade |
+| Capacidade por unidade | Filtros de período (atalhos e De/Até), papel, frente, situação e saúde; cartões por unidade com mini-série mensal; mapa de calor unidade × mês clicável; cadência mensal empilhada por unidade; carga por papel; tabela detalhada agrupável por data, unidade, iniciativa ou frente |
 | Contratações e capacitação | Dependências declaradas nos compromissos |
 | Entregas, Ações, PEI, Metodologia | Demais camadas e síntese da metodologia v0.4 |
 
