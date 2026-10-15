@@ -1,0 +1,17 @@
+{
+  "name": "setec-executivo",
+  "version": "1.0.0",
+  "description": "Visao executiva da governanca de tecnologia da SETEC (site estatico)",
+  "main": "index.html",
+  "scripts": {
+    "dados": "node scripts/gerar-dados.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "private": true
+}
