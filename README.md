@@ -3,9 +3,23 @@
 Painel web estático (sem build) com a leitura executiva do portfólio de governança de tecnologia da SETEC/SOF:
 Iniciativas Estruturantes, Compromissos, Entregas ao Negócio, Ações Relevantes e vínculos com o PEI.
 
-**Acesso:** https://marciobarrosdeoliveira.github.io/setec-executivo/
+**Acesso:**
 
-## Visões
+- Apresentação executiva (slides): https://marciobarrosdeoliveira.github.io/setec-executivo/apresentacao/
+- Visão detalhada (formato sistema, alternativa — tag `v1-sistema`): https://marciobarrosdeoliveira.github.io/setec-executivo/
+
+## Apresentação executiva (`apresentacao/`)
+
+Deck 16:9 gerado a partir do mesmo `assets/dados.js`, seguindo o roteiro da reunião:
+
+1. **Panorama do portfólio** — números gerais, carga por área e frente, distribuição por datas (picos), matriz unidade × mês e a última revisão macro de quantidade/datas (viabilidade).
+2. **Primeiras entregas** — compromissos previstos para setembro e outubro/2026 e os pontos a validar com as áreas.
+3. **Rodadas de acompanhamento** — fluxo quinzenal por exceção e regra de pauta.
+4. **Monitoramento dinâmico** — sinais acompanhados a cada rodada e encaminhamentos.
+
+Navegação: setas ←/→, PgUp/PgDn, espaço, Home/End, `F` (tela cheia), toque/arrastar e `#n` na URL. O botão **PDF** imprime um slide por página.
+
+## Visões (versão detalhada)
 
 | Visão | Conteúdo |
 |---|---|
